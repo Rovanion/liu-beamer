@@ -10,7 +10,7 @@
 % version 2005/12/01 or later.
 %
 % This work has the LPPL maintenance status `maintained'.
-% 
+%
 % The Current Maintainer of this work is Clas Veibäck.
 %
 % This work consists of the files beamer*themeLiU.sty
@@ -30,7 +30,6 @@
 %%
 \usepackage{etex}
 \usepackage{multicol}
-\usepackage{environ}
 
 %%
 %%	Read Options
@@ -48,6 +47,10 @@
 \DeclareOptionBeamer{highcontrast}{\PassOptionsToPackage{highcontrast}{beamercolorthemeLiU}}
 \ProcessOptionsBeamer
 \DeclareOptionBeamer{superhighcontrast}{\PassOptionsToPackage{superhighcontrast}{beamercolorthemeLiU}}
+\ProcessOptionsBeamer
+\DeclareOptionBeamer{dark}{\PassOptionsToPackage{dark}{beamercolorthemeLiU}}
+\ProcessOptionsBeamer
+\DeclareOptionBeamer{handout}{\PassOptionsToPackage{handout}{beamercolorthemeLiU}}
 \ProcessOptionsBeamer
 \DeclareOptionBeamer{homepage}{\PassOptionsToPackage{homepage}{beamercolorthemeLiU}}
 \ProcessOptionsBeamer
@@ -92,8 +95,8 @@
 \DeclareOptionBeamer{nooutline}{\LiU@outlinefalse}
 \ProcessOptionsBeamer
 
-\newif\ifLiU@outlinecolumns\LiU@outlinecolumnsfalse%% Option for outline columns.
-\DeclareOptionBeamer{outlinecolumns}{\LiU@outlinecolumnstrue}
+\def\LiU@outlinecolumns{1}%% Option for number of outline columns
+\DeclareOptionBeamer{outlinecolumns}{\def\LiU@outlinecolumns{#1}}
 \ProcessOptionsBeamer
 
 \newif\ifLiU@institute\LiU@institutefalse%% Option for showing institute on title page.
@@ -125,101 +128,137 @@
 \LiU@logomargin = \LiU@titlemargin
 \advance \LiU@logomargin by-0.5\LiU@logo@large@width%% According to specification
 
-\NewEnviron{LiUframe}[1][titlepage]{% Option is beamer color
-	\begingroup%
-		\setbeamertemplate{navigation symbols}{}%
-		\begin{frame}[plain]%
-			\begin{beamercolorbox}[wd=\paperwidth,ht=\paperheight,left]{#1}%
-				\begin{center}%
-					\begin{minipage}{\LiUframewidth}%
-						\BODY%
-					\end{minipage}%
-				\end{center}%
-				\hskip\LiUframelogomargin%
-				\vskip0mm%
-				\begin{minipage}{\paperwidth}%
-					\hskip\LiUframelogomargin \insertLargeLogo{#1}  \hfill \ifLiU@titlepageimage  \insertLargeImage{#1} \hspace{\LiUframelogomargin} \fi%
-				\end{minipage}%
-				\vskip\LiUframelogobottom%
-			\end{beamercolorbox}%
-		\end{frame}%
-	\endgroup%
+\newcommand<>{\LiUframe}[2][blue]{%
+        \begingroup%
+                \setbeamertemplate{navigation symbols}{}%
+                \setbeamercolor{background canvas}{parent=#1}%
+                \setbeamertemplate{footline}[LiUframe][#1]%
+                \setbeamertemplate{headline}[LiUframe]%
+                \setbeamertemplate{frametitle}[LiUframe][#1]%
+                \usebeamercolor[fg]{#1}%
+                %
+                \begin{frame}#3%
+                        \begin{center}%
+                                \begin{minipage}[c][0.6\paperheight][c]{1.01\LiUframewidth}%
+                                        #2%
+                                \end{minipage}
+                        \end{center}%
+                \end{frame}%
+        \endgroup%
 }
+
+% \newcommand<>{\LiUframe}[2][blue]{%
+        % \begingroup%
+                % \setbeamertemplate{navigation symbols}{}%
+                % \begin{frame}#3[plain]%
+                        % \begin{beamercolorbox}[wd=\paperwidth,ht=\paperheight,left]{#1}%
+                                % \begin{center}%
+                                        % \begin{minipage}[c][0.6\paperheight][c]{1\LiUframewidth}%
+                                                % #2%
+                                        % \end{minipage}
+                                % \end{center}%
+                                % \hskip\LiUframelogomargin%
+                                % \vskip0mm%
+                                % \begin{minipage}{\paperwidth}%
+                                        % \hskip\LiUframelogomargin \insertLargeLogo{#1}  \hfill \ifLiU@titlepageimage  \insertLargeImage{#1} \hspace{\LiUframelogomargin} \fi%
+                                % \end{minipage}%
+                                % \vskip\LiUframelogobottom%
+                        % \end{beamercolorbox}%
+                % \end{frame}%
+        % \endgroup%
+% }
 
 %
 % TITLE PAGE
 %
 \def\maketitle{%
-	\ifbeamer@inframe%
-		\PackageWarning{LiU}{%
-			\begin{verbatim}%
-				\maketitle must be called outside frame.
-			\end{verbatim}%
-		}%
-	\else%
-		\begin{LiUframe}[titlepage]%
-			\titlepage%
-		\end{LiUframe}%
-	\fi%
+        \ifbeamer@inframe%
+                \PackageWarning{LiU}{%
+                        \begin{verbatim}%
+                                \maketitle must be called outside frame.
+                        \end{verbatim}%
+                }%
+        \else%
+                \LiUframe[titlepage]{%
+                        \titlepage%
+                }%
+        \fi%
 }%
 
-\newdimen\LiU@titleposition
-\LiU@titleposition = 25mm
+\newdimen\LiU@titlepage@position
+\LiU@titlepage@position = 10mm
 
-\defbeamertemplate*{title page}{LiU}[1][]{%	
-	\setcounter{framenumber}{0}%
-	\raggedright\usebeamerfont{title}\inserttitle\par%
-	\ifx\insertsubtitle\@empty\else%
-		{\usebeamerfont{subtitle}\insertsubtitle\par}%
-	\fi%
-	\vskip3mm%
-	\begin{beamercolorbox}[wd=\LiU@titlewidth,left]{author}%
-		\raggedright\usebeamerfont{author in title}\insertauthor%
-	\end{beamercolorbox}%
-	\ifx\insertinstitute\@empty\else%
-	\ifLiU@institute%
-		\vspace{3mm}
-		\begin{beamercolorbox}[wd=\LiU@titlewidth,left]{author}%
-			\raggedright\usebeamerfont{institute in title}\insertinstitute%
-		\end{beamercolorbox}%
-		\vspace{-10mm}%
-		\fi%
-	\fi%
-	\vspace{\LiU@titleposition}%
+\newdimen\LiU@titlepage@titlesparation
+\LiU@titlepage@titlesparation = 3mm
+
+\newdimen\LiU@titlepage@instituteseparation
+\LiU@titlepage@instituteseparation = 3mm
+
+\newdimen\LiU@titlepage@institutebottom
+\LiU@titlepage@institutebottom = -10mm
+
+\defbeamertemplate*{title page}{LiU}[1][]{%
+        %%
+        %% Title page is page 0
+        \setcounter{framenumber}{0}%
+        %%
+        %% Insert title
+        \raggedright\usebeamerfont{title}\inserttitle\par%
+        %%
+        %% Insert subtitle if needed
+        \ifx\insertsubtitle\@empty\else%
+                {\usebeamerfont{subtitle}\insertsubtitle\par}%
+        \fi%
+        %%
+        %% Insert author
+        \vskip\LiU@titlepage@titlesparation%
+        \raggedright\usebeamerfont{author in title}\insertauthor%
+        %%
+        %% Insert institute if needed
+        \ifx\insertinstitute\@empty\else%
+                \ifLiU@institute%
+                        \vskip\LiU@titlepage@instituteseparation
+                                \raggedright\usebeamerfont{institute in title}\insertinstitute%
+                        \vspace{\LiU@titlepage@institutebottom}%
+                \fi%
+        \fi%
+        \vspace{\LiU@titlepage@position}%
 }
 
 %
 % END PAGE
 %
 \def\makeend{%
-	\ifbeamer@inframe%
-		\PackageWarning{LiU}{%
-			\begin{verbatim}%
-				\makeend must be called outside frame.
-			\end{verbatim}%
-		}%
-	\else%
-		\begin{LiUframe}[endpage]%
-			\endpage%
-		\end{LiUframe}%
-	\fi%
+        \ifbeamer@inframe%
+                \PackageWarning{LiU}{%
+                        \begin{verbatim}%
+                                \makeend must be called outside frame.
+                        \end{verbatim}%
+                }%
+        \else%
+                \LiUframe[endpage]{%
+                        \endpage%
+                }%
+        \fi%
 }
 
-\newdimen\LiU@textposition
-\LiU@textposition = 25mm
+\newdimen\LiU@endpage@textposition
+\LiU@endpage@textposition = 0mm
+
+\newdimen\LiU@endpage@separation
+\LiU@endpage@separation= 2mm
 
 \defbeamertemplate*{end page}{LiU}[1][]{%
-	\begin{center}%
-		\ifx\LiU@finaltext\LiU@empty%
-			\usebeamerfont{endauthor}\insertauthor\par%
-		\else%
-			\usebeamerfont{endtext}\LiU@finaltext\par%
-		\fi%
-	\end{center}%
-	\begin{beamercolorbox}[center,#1]{author}%
-		\usebeamerfont{endlink}\href{www.liu.se}{www.liu.se}%
-	\end{beamercolorbox}%
-	\vspace{\LiU@textposition}%
+        \begin{center}%
+                \ifx\LiU@finaltext\LiU@empty%
+                        \usebeamerfont{endauthor}\insertauthor\par%
+                \else%
+                        \usebeamerfont{endtext}\LiU@finaltext\par%
+                \fi%
+                \vspace{\LiU@endpage@separation}
+                \usebeamerfont{endlink}\href{www.liu.se}{www.liu.se}%
+        \end{center}%
+        \vspace{\LiU@endpage@textposition}%
 }
 
 \def\endpage{\usebeamertemplate*{end page}}
@@ -233,40 +272,38 @@
 %
 
 \newcommand{\makeoutline}[1][]{%
-	\begingroup%
-		\setbeamertemplate{outline page}[LiU][#1]%
-		\ifbeamer@inframe%
-			\outlinepage%
-		\else%
-			\begin{LiUframe}[outlinepage]%
-				\outlinepage%
-			\end{LiUframe}%
-		\fi%
-	\endgroup%
+        \begingroup%
+                \setbeamertemplate{outline page}[LiU][#1]%
+                \ifbeamer@inframe%
+                        \outlinepage%
+                \else%
+                        \LiUframe[outlinepage]{%
+                                \outlinepage%
+                        }
+                \fi%
+        \endgroup%
 }
 
 \newdimen\LiU@outlineposition
-\LiU@outlineposition = 10mm
+\LiU@outlineposition = -4mm
 
 \defbeamertemplate*{outline page}{LiU}[1][]{%
-	\begin{minipage}[c][10em]{\LiU@titlewidth}%
-		\begin{beamercolorbox}[wd=\LiU@titlewidth,left]{outlinepage}%
-			\ifLiU@outlinecolumns%
-				\begin{multicols}{2}%
-					\tableofcontents[#1]%
-				\end{multicols}%
-			\else%
-				\tableofcontents[#1]%
-			\fi%
-		\end{beamercolorbox}%
-	\end{minipage}%
-	\vspace{\LiU@outlineposition}%
+        \hspace{\LiU@outlineposition}
+        \begin{minipage}[c]{1.0\LiUframewidth}%
+                \if\LiU@outlinecolumns1%
+                        \tableofcontents[#1]%
+                \else%
+                        \begin{multicols}{\LiU@outlinecolumns}%
+                                \tableofcontents[#1]%
+                        \end{multicols}%
+                \fi%
+        \end{minipage}%
 }
 
 \def\outlinepage{\usebeamertemplate*{outline page}}
 
 \ifLiU@outline
-	\AtBeginSection[]{\makeoutline[currentsection]}
+        \AtBeginSection[]{\makeoutline[currentsection]}
 \fi
 
 %%
